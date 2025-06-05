@@ -56,25 +56,27 @@ tools = [{
 
 question = input("Enter your question about Kaunas: ")
 
+messages = [
+    {"role": "system", "content": "You are a helpful assistant. You will answer questions about Kaunas using Wikipedia."},
+    {"role": "user", "content": question}
+]
+
 completion = client.chat.completions.create(
     model="openai/gpt-4.1-nano",
-    messages=[{"role": "system", "content": "You are a helpful assistant. You will answer questions about Kaunas using Wikipedia."},
-        {"role": "user", "content": question}],
+    messages=messages,
     tools=tools #type: ignore
 )
 
 tool_calls = completion.choices[0].message.tool_calls
 result = None
-messages = []
 
 # if tool_calls:
     # Call your function and print the result
 result = get_kaunas_wiki()
-# print(result) 
-messages.append(completion.choices[0].message)  # append model's function call message
+messages.append(completion.choices[0].message.model_dump())  # append model's function call message as dict
 messages.append({                               # append result message
     "role": "tool",
-    "tool_call_id": tool_calls[0].id if tool_calls else None,
+    "tool_call_id": str(tool_calls[0].id) if tool_calls else "",
     "content": str(result)
 })
 
@@ -84,5 +86,3 @@ completion_2 = client.chat.completions.create(
     tools=tools, #type: ignore
 )
 print(completion_2.choices[0].message.content)
-# else:
-    # print(completion.choices[0].message.content)
